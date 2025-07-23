@@ -1,5 +1,6 @@
 import json
 import system_prompts
+import prompts_dict
 
 def generate_jsonl(data, output_file):
     """
@@ -25,19 +26,9 @@ def create_message(user_content, assistant_content):
 # List to hold all data entries
 data = []
 
-# Add entries easily by calling create_message
-data.append(create_message("What is the current tenant release status?", 
-                            """GetTenantVersions
-| extend Region = tolower(replace_string(regions, " ", ""))
-| join kind = inner (GetRegionalAppsVersion | where component == "RegionalResourceProvider" | distinct Region, ClusterName, sdpStage | where ClusterName !contains "prv-01") on Region
-| where sku !contains "V2"
-| summarize count() by sdpStage1, version, tostring(releaseChannel)
-| order by sdpStage1 asc"""))
-
-data.append(create_message("", 
-                            """
-
-"""))
+# Add entries from prompts_dict by calling create_message for each key-value pair
+for user_content, assistant_content in prompts_dict.items():
+    data.append(create_message(user_content, assistant_content))
 
 generate_jsonl(data, "output.jsonl")
 
