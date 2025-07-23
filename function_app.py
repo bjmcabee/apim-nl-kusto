@@ -13,8 +13,10 @@ def HttpTrigger1(req: func.HttpRequest) -> func.HttpResponse :
     command = "GetTenantVersions |distinct serviceName"
     result = execute_kusto_query(command)
 
-    for i, row in enumerate(result["primary_result"]):
-        logging.info(f"Row {i + 1}: {row}")
+    # Return trigger
+    logging.info(f"Query executed successfully: {result}")
+    # for i, row in enumerate(result["primary_result"]):
+    #     logging.info(f"Row {i + 1}: {row}")
 
     return func.HttpResponse("Executed Correctly.")
 
