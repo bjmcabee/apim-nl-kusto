@@ -4,4 +4,5 @@
 
 azure-functions
 azure-kusto-data
+azure-kusto-ingest
 openai

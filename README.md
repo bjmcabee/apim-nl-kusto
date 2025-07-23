@@ -7,14 +7,16 @@ Quickstart Ref: https://learn.microsoft.com/en-us/azure/azure-functions/create-f
 ## LOCAL SETTINGS VALUES
 Get Foundry key from [Foundry Resource](https://ai.azure.com/foundryProject/overview?wsid=/subscriptions/a200340d-6b82-494d-9dbf-687ba6e33f9e/resourceGroups/apimnlkustofunction/providers/Microsoft.CognitiveServices/accounts/apimnlkusto-foundry/projects/apim-nl-kusto&tid=72f988bf-86f1-41af-91ab-2d7cd011db47)
 
+```json
 {
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "FUNCTIONS_WORKER_RUNTIME": "python", 
     "AI_FOUNDRY_API_KEY": "<>",
     "AZURE_OPENAI_ENDPOINT": "https://apimnlkusto-foundry.openai.azure.com/",
     "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-4o-mini",
     "AZURE_OPENAI_API_VERSION": "2025-01-01-preview"
   }
 }
+```
