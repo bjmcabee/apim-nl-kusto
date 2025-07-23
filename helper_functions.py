@@ -4,7 +4,7 @@ from azure.kusto.data import KustoClient
 from utils import Utils
 import os
 from openai import AzureOpenAI
-from prompts.system_prompts import DEFAULT_SYSTEM_PROMPT
+from prompts.system_prompts import DEFAULT_KUSTO_SYSTEM_PROMPT, KUSTO_RESULTS_SUMMARY_SYSTEM_PROMPT
 
 CONFIG_FILE_NAME = "config.json"
 
@@ -17,16 +17,12 @@ def generate_kusto_query_from_nl(prompt: str) -> str:
         
     Returns:
         str: Generated Kusto query
-    """
-    # TODO: Implement AI/LLM integration to convert natural language to Kusto
-    # This could integrate with Azure OpenAI, OpenAI API, or other language models
-    # For now, return a placeholder query with the prompt
-    
+    """    
     logging.info(f"Generating Kusto query for prompt: {prompt}")
 
     kql_query = execute_llm_call(
         user_prompt=prompt,
-        system_prompt=DEFAULT_SYSTEM_PROMPT,
+        system_prompt=DEFAULT_KUSTO_SYSTEM_PROMPT,
         return_query_only=True
     )
 
@@ -57,7 +53,8 @@ def execute_llm_call(
     user_prompt: str, 
     system_prompt: str = None, 
     return_query_only: bool = True,
-    return_full_response: bool = False
+    return_full_response: bool = False,
+    deployment_model: str = "gpt-4o-mini"
 ) -> str:
     """
     Execute LLM call to generate Kusto queries from natural language.
@@ -67,7 +64,7 @@ def execute_llm_call(
         system_prompt (str, optional): Custom system prompt. If None, uses default Kusto expert prompt
         return_query_only (bool, optional): If True, extracts only the KQL query from response. Default True
         return_full_response (bool, optional): If True, returns the full API response object. Default False
-        
+        deployment_model (str, optional): The model to use for the LLM call. Default is "gpt-4o-mini"
     Returns:
         str or dict: Generated Kusto query string, or full response object if return_full_response=True
     """
@@ -86,13 +83,11 @@ def execute_llm_call(
     )
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=deployment_model,
         messages=messages,
         temperature=0.1,  # Lower temperature for more consistent query generation
         max_tokens=1000
     )
-
-    logging.info(f"LLM response for query generation: {response.choices[0].message.content}")
 
     if return_full_response:
         return response
@@ -100,6 +95,7 @@ def execute_llm_call(
     response_content = response.choices[0].message.content
 
     if return_query_only:
+        logging.info(f"LLM response for query generation: {response_content}")
         return extract_kql_query(response_content)
     
     return response_content
@@ -130,13 +126,10 @@ def extract_kql_query(response_content: str) -> str:
     
     for line in lines:
         stripped_line = line.strip()
-        # Skip empty lines and comments
         if not stripped_line or stripped_line.startswith('//'):
             continue
-        # Look for typical KQL operators and table names
         if any(keyword in stripped_line for keyword in ['|', 'where', 'summarize', 'project', 'order', 'join', 'extend', 'distinct']):
             kql_lines.append(stripped_line)
-        # Also include lines that look like table names (start with capital letter)
         elif stripped_line and stripped_line[0].isupper() and not any(char in stripped_line for char in ['.', ':', ';']):
             kql_lines.append(stripped_line)
     
@@ -183,4 +176,23 @@ def execute_kusto_query(query: str) -> dict:
             columns = [col.column_name for col in result_table.columns]
             rows = [dict(zip(columns, row)) for row in result_table.rows]
             return rows
-        
+
+def summarize_kusto_results(query: str, results: list) -> str:
+    user_prompt = f"""Please analyze the following KQL query and its results:
+
+Query:
+{query}
+
+Results:
+{results}
+
+Provide a clear summary of the key findings."""
+
+    response = execute_llm_call(
+        user_prompt=user_prompt,
+        system_prompt=KUSTO_RESULTS_SUMMARY_SYSTEM_PROMPT,
+        return_query_only=False,
+        return_full_response=True
+    )
+
+    return response.choices[0].message.content
