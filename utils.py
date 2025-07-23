@@ -64,13 +64,9 @@ class Utils:
             :param cluster_url: Url of cluster to connect to
             :return: ManagedIdentity Kusto Connection String
             """
-            # Connect using the system- or user-assigned managed identity (Azure service only)
-            # TODO (config - optional): Managed identity client ID if you are using a user-assigned managed identity
-            client_id = os.environ.get("MANAGED_IDENTITY_CLIENT_ID")
+
             return (
-                KustoConnectionStringBuilder.with_aad_managed_service_identity_authentication(cluster_url, client_id=client_id)
-                if client_id
-                else KustoConnectionStringBuilder.with_aad_managed_service_identity_authentication(cluster_url)
+                KustoConnectionStringBuilder.with_aad_managed_service_identity_authentication(cluster_url)
             )
 
         @classmethod
