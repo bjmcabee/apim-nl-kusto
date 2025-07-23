@@ -157,16 +157,15 @@ def execute_kusto_query(query: str) -> dict:
     Returns:
         dict: Query results and metadata
     """
-    # TODO: Implement actual Kusto query execution
-    # This should connect to Azure Data Explorer using:
-    # - Azure SDK for Python (azure-kusto-data)
-    # - Managed Identity for authentication
-    # - Proper error handling and retry logic
 
     config_dict = Utils.load_configs(CONFIG_FILE_NAME)
     kusto_uri = config_dict["kustoUri"]
     database_name = config_dict["databaseName"]
     authentication_mode = config_dict["authenticationMode"]
+
+    logging.info(f"kustoUri: {kusto_uri}")
+    logging.info(f"databaseName: {database_name}")
+    logging.info(f"authenticationMode: {authentication_mode}")
 
     kusto_connection_string = Utils.Authentication.generate_connection_string(kusto_uri, authentication_mode)
     
