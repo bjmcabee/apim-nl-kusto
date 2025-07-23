@@ -27,22 +27,19 @@ data = []
 
 # Add entries easily by calling create_message
 data.append(create_message("What is the current tenant release status?", 
-                            """All('ResourceProvider')
-| where TIMESTAMP >= datetime(2025-07-23T16:52:30Z) and TIMESTAMP <= datetime(2025-07-23T22:53:00Z)
-| where Tenant endswith \"-rpApp\" and slotName == \"PRODUCTION\"
-| distinct Tenant, codeVersion, Region
-| project ClusterName=Tenant, Region, codeVersion
-| join kind=inner (GetRegionalAppsVersion()
-| where component == \"RegionalResourceProvider\"
-| summarize by sdpStage, Region
-| extend Region = replace(\" \", \"\", tolower(Region))
-| order by sdpStage asc)
-on Region
-| project sdpStage, Region, ClusterName= ClusterName, RuntimeVersion= codeVersion
-| summarize dcount(Region) by RuntimeVersion, sdpStage"""))
+                            """GetTenantVersions
+| extend Region = tolower(replace_string(regions, " ", ""))
+| join kind = inner (GetRegionalAppsVersion | where component == "RegionalResourceProvider" | distinct Region, ClusterName, sdpStage | where ClusterName !contains "prv-01") on Region
+| where sku !contains "V2"
+| summarize count() by sdpStage1, version, tostring(releaseChannel)
+| project-away releaseChannel
+| evaluate pivot(version, sum(count_))
+| order by sdpStage1 asc"""))
 
 data.append(create_message("", 
-                            """"""))
+                            """
+
+"""))
 
 generate_jsonl(data, "output.jsonl")
 
