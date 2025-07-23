@@ -2,6 +2,7 @@ import enum
 import os
 import uuid
 import json
+from azure.identity import DefaultAzureCredential
 from time import sleep
 from azure.kusto.data import KustoConnectionStringBuilder, ClientRequestProperties, KustoClient, DataFormat
 from azure.kusto.data.exceptions import KustoClientError, KustoServiceError
@@ -65,9 +66,11 @@ class Utils:
             :return: ManagedIdentity Kusto Connection String
             """
 
-            return (
-                KustoConnectionStringBuilder.with_aad_managed_service_identity_authentication(cluster_url)
-            )
+            credential = DefaultAzureCredential()
+            token = credential.get_token("https://kusto.kusto.windows.net/.default")
+
+            kcsb = KustoConnectionStringBuilder.with_aad_managed_service_identity_authentication(cluster_url)
+            return kcsb.with_aad_application_token_authentication(cluster_url, token.token)
 
         @classmethod
         def create_application_certificate_connection_string(cls, cluster_url: str) -> KustoConnectionStringBuilder:

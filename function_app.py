@@ -9,16 +9,23 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 @app.route(route="req", methods=["POST"])
 def HttpTrigger1(req: func.HttpRequest) -> func.HttpResponse :
     logging.info('Python HTTP trigger function processed a request.')
+    try:
+        command = "Orchestration |summarize argmax(PreciseTimeStamp,*)"
+        result = execute_kusto_query(command)
 
-    command = "GetTenantVersions |distinct serviceName"
-    result = execute_kusto_query(command)
+        # Return trigger
+        logging.info(f"Query executed successfully: {result}")
+        # for i, row in enumerate(result["primary_result"]):
+        #     logging.info(f"Row {i + 1}: {row}")
 
-    # Return trigger
-    logging.info(f"Query executed successfully: {result}")
-    # for i, row in enumerate(result["primary_result"]):
-    #     logging.info(f"Row {i + 1}: {row}")
-
-    return func.HttpResponse("Executed Correctly.")
+        return func.HttpResponse("Executed Correctly.")
+    except Exception as e:
+        logging.error(f"Error executing query: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": f"Internal server error: {str(e)}"}),
+            status_code=500,
+            mimetype="application/json"
+        )
 
 @app.function_name(name="BasicLLMCall")
 @app.route(route="basic_llm_call", methods=["POST"])
