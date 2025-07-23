@@ -3,7 +3,7 @@ import logging
 import json
 from helper_functions import *
 
-app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
 @app.function_name(name="HttpTrigger1")
 @app.route(route="req", methods=["POST"])

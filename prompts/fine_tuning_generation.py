@@ -16,7 +16,7 @@ def generate_jsonl(data, output_file):
 def create_message(user_content, assistant_content):
     return {
         "messages": [
-            {"role": "system", "content": system_prompts.DEFAULT_SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompts.DEFAULT_KUSTO_SYSTEM_PROMPT},
             {"role": "user", "content": user_content},
             {"role": "assistant", "content": assistant_content}
         ]
@@ -32,8 +32,6 @@ data.append(create_message("What is the current tenant release status?",
 | join kind = inner (GetRegionalAppsVersion | where component == "RegionalResourceProvider" | distinct Region, ClusterName, sdpStage | where ClusterName !contains "prv-01") on Region
 | where sku !contains "V2"
 | summarize count() by sdpStage1, version, tostring(releaseChannel)
-| project-away releaseChannel
-| evaluate pivot(version, sum(count_))
 | order by sdpStage1 asc"""))
 
 data.append(create_message("", 
