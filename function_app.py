@@ -72,17 +72,21 @@ def kusto_nl_query(req: func.HttpRequest) -> func.HttpResponse:
 
         logging.info(f"Processing natural language prompt: {prompt}")
 
-        # TODO: Implement Kusto query generation from natural language
         kusto_query = generate_kusto_query_from_nl(prompt)
         
-        # TODO: Implement Kusto query execution
         results = execute_kusto_query(kusto_query)
+
+        nl_summarized_results = summarize_kusto_results(kusto_query, results)
+
+        logging.info(f"Generated Kusto query: {kusto_query}")
+        logging.info(f"Query results: {results}")
+        logging.info(f"Summarized results: {nl_summarized_results}")
         
-        # Return the results
         response_data = {
             "prompt": prompt,
             "generated_query": kusto_query,
             "results": results,
+            "summarized_results": nl_summarized_results,
             "status": "success"
         }
         
