@@ -47,6 +47,7 @@ def basic_llm_call(req: func.HttpRequest) -> func.HttpResponse:
             status_code=500,
             mimetype="application/json"
         )
+
 @app.function_name(name="kustoNlQuery")
 @app.route(route="kusto_nl_query", methods=["POST"])
 def kusto_nl_query(req: func.HttpRequest) -> func.HttpResponse:
