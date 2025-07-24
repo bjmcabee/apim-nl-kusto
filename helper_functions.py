@@ -5,6 +5,7 @@ from utils import Utils
 import os
 from openai import AzureOpenAI
 from prompts.system_prompts import DEFAULT_KUSTO_SYSTEM_PROMPT, KUSTO_RESULTS_SUMMARY_SYSTEM_PROMPT
+from prompts.prompts_dict import prompts_dict
 
 CONFIG_FILE_NAME = "config.json"
 
@@ -20,9 +21,15 @@ def generate_kusto_query_from_nl(prompt: str) -> str:
     """    
     logging.info(f"Generating Kusto query for prompt: {prompt}")
 
+    # Build system prompt by appending prompt_dict entries
+    system_prompt = DEFAULT_KUSTO_SYSTEM_PROMPT
+    if prompts_dict:
+        for i, (k, v) in enumerate(prompts_dict.items()):
+            system_prompt += f"\nQuestion {i}: {k}\nKqlQuery: {v}"
+
     kql_query = execute_llm_call(
         user_prompt=prompt,
-        system_prompt=DEFAULT_KUSTO_SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         return_query_only=True
     )
 

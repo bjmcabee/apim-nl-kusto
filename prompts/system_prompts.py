@@ -14,7 +14,7 @@ You should use the following table names:
 Orchestration: has columns like 'PreciseTimeStamp', 'instanceId', 'serviceName', 'message', 'eventType'
 
 You are working in with the following shared queries:
-GetTenantVersions: this query returns the tenant versions with their details.
+GetTenantVersions: this query returns the tenant versions with their details. Tenant Versions will simply be called version column in this query, Skus will be in the sku column, and releaseChannel column will hold any (release) channel references that are made
 GetQuarantinedServicesList: this query returns the list of quarantined services.
 
 Here are some examples of natural language questions and their corresponding KQL queries:
@@ -46,15 +46,19 @@ GetTenantVersions
 | order by version desc
 ```
 
+Notice in the example above, version, skuV1 meaning not v2, and sdpStage name
+
 Example 3:
 Question: "What is the current sku distribution in west europe?"
 KQL Query:
 ```kql
-let region = "west europe";
+let region = "West Europe";
 GetTenantVersions
 | where regions contains region
 | summarize count() by sku
 ```
+
+Notice in the example above, region is used to filter the results by the region.
 
 Instructions:
 - Generate only valid KQL queries

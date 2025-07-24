@@ -27,7 +27,7 @@ def create_message(user_content, assistant_content):
 data = []
 
 # Add entries from prompts_dict by calling create_message for each key-value pair
-for user_content, assistant_content in prompts_dict.items():
+for user_content, assistant_content in prompts_dict.prompts_dict.items():
     data.append(create_message(user_content, assistant_content))
 
 generate_jsonl(data, "output.jsonl")

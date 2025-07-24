@@ -62,6 +62,118 @@ GetTenantVersions
 | where windowsVer != ""
 | sort by sdpStage asc
 ```
-"""
+""",
+
+    "Get the VersionMappings": """
+```kql
+All('Orchestration')
+| where PreciseTimeStamp > ago(6h)
+| where eventType == "GotSortedVersionMappings"
+| extend msg = parse_json(message)
+| mv-expand msg
+| extend 
+    channel = tostring(msg["ReleaseChannel"]),
+    targetVersion = tostring(msg["TargetVersion"])
+| summarize arg_max(PreciseTimeStamp, targetVersion) by Region, channel
+| evaluate pivot(channel, any(targetVersion))
+| join kind=leftouter GetSDPRegions on Region
+| extend SdpStage = coalesce(SdpStage, 6)
+| project Region, SdpStage, GenAI, Preview, Default, Stable, Stable2, Stable3
+| order by SdpStage asc, Region asc 
+```
+""",
+
+    "Get the VersionMappings in EastUS": """
+```kql
+All('Orchestration')
+| where PreciseTimeStamp > ago(6h)
+| where eventType == "GotSortedVersionMappings"
+| extend msg = parse_json(message)
+| mv-expand msg
+| extend 
+    channel = tostring(msg["ReleaseChannel"]),
+    targetVersion = tostring(msg["TargetVersion"])
+| summarize arg_max(PreciseTimeStamp, targetVersion) by Region, channel
+| evaluate pivot(channel, any(targetVersion))
+| join kind=leftouter GetSDPRegions on Region
+| extend SdpStage = coalesce(SdpStage, 6)
+| project Region, SdpStage, GenAI, Preview, Default, Stable, Stable2, Stable3
+| order by SdpStage asc, Region asc 
+| where Region == "East US"
+```
+""",
+
+    "Get the ResourceProvider Versions": """
+```kql
+All('Orchestration')
+| where TIMESTAMP >= datetime(2025-07-23T16:52:30Z) and TIMESTAMP <= datetime(2025-07-23T22:53:00Z)
+| where eventType in ("HealthMonitorRegionalResourceProviderReachable")
+| where eventType !contains "Healthy"
+| extend msg=replace("\"{", "{", replace("}\"", "}", replace(@"\\", "", message)))
+| extend msg=parse_json(msg), eventType = replace("HealthMonitorRegional", "", eventType)
+| project PreciseTimeStamp, ClusterName=tostring(msg.ClusterName), Region=msg.Region, RuntimeVersion= iff(eventType contains "Smapi", msg.ResponseBody.version, replace("'", "", tostring(msg.ResponseBody.RuntimeVersion))), eventType, Endpoint=tostring(msg.Endpoint) // , msg.StatusCode
+| extend t=PreciseTimeStamp
+| where ClusterName !endswith "-prv-01"
+| summarize argmax(t, ClusterName, tostring(RuntimeVersion), tostring(Endpoint)) by eventType, tostring(Region)
+| join kind=inner (GetRegionalAppsVersion()
+| where component == "RegionalResourceProvider"
+| summarize by sdpStage, Region
+| extend Region = replace(" ", "", tolower(Region))
+| order by sdpStage asc)
+on Region
+| project sdpStage, Region, ClusterName= max_t_ClusterName, RuntimeVersion= max_t_RuntimeVersion, eventType, Time=max_t, Endpoint= max_t_Endpoint
+| summarize dcount(Region) by RuntimeVersion, sdpStage
+| order by sdpStage asc
+```
+""",
+
+    "Get the ResourceProvider Versions in Stage 1": """
+```kql
+All('Orchestration')
+| where TIMESTAMP >= datetime(2025-07-23T16:52:30Z) and TIMESTAMP <= datetime(2025-07-23T22:53:00Z)
+| where eventType in ("HealthMonitorRegionalResourceProviderReachable")
+| where eventType !contains "Healthy"
+| extend msg=replace("\"{", "{", replace("}\"", "}", replace(@"\\", "", message)))
+| extend msg=parse_json(msg), eventType = replace("HealthMonitorRegional", "", eventType)
+| project PreciseTimeStamp, ClusterName=tostring(msg.ClusterName), Region=msg.Region, RuntimeVersion= iff(eventType contains "Smapi", msg.ResponseBody.version, replace("'", "", tostring(msg.ResponseBody.RuntimeVersion))), eventType, Endpoint=tostring(msg.Endpoint) // , msg.StatusCode
+| extend t=PreciseTimeStamp
+| where ClusterName !endswith "-prv-01"
+| summarize argmax(t, ClusterName, tostring(RuntimeVersion), tostring(Endpoint)) by eventType, tostring(Region)
+| join kind=inner (GetRegionalAppsVersion()
+| where component == "RegionalResourceProvider"
+| summarize by sdpStage, Region
+| extend Region = replace(" ", "", tolower(Region))
+| order by sdpStage asc)
+on Region
+| project sdpStage, Region, ClusterName= max_t_ClusterName, RuntimeVersion= max_t_RuntimeVersion, eventType, Time=max_t, Endpoint= max_t_Endpoint
+| summarize dcount(Region) by RuntimeVersion, sdpStage
+| order by sdpStage asc
+| where sdpStage == "1"
+```
+""",
+
+    "Get the ResourceProvider Versions in East US": """
+```kql
+All('Orchestration')
+| where TIMESTAMP >= datetime(2025-07-23T16:52:30Z) and TIMESTAMP <= datetime(2025-07-23T22:53:00Z)
+| where eventType in ("HealthMonitorRegionalResourceProviderReachable")
+| where eventType !contains "Healthy"
+| extend msg=replace("\"{", "{", replace("}\"", "}", replace(@"\\", "", message)))
+| extend msg=parse_json(msg), eventType = replace("HealthMonitorRegional", "", eventType)
+| project PreciseTimeStamp, ClusterName=tostring(msg.ClusterName), Region=msg.Region, RuntimeVersion= iff(eventType contains "Smapi", msg.ResponseBody.version, replace("'", "", tostring(msg.ResponseBody.RuntimeVersion))), eventType, Endpoint=tostring(msg.Endpoint) // , msg.StatusCode
+| extend t=PreciseTimeStamp
+| where ClusterName !endswith "-prv-01"
+| summarize argmax(t, ClusterName, tostring(RuntimeVersion), tostring(Endpoint)) by eventType, tostring(Region)
+| join kind=inner (GetRegionalAppsVersion()
+| where component == "RegionalResourceProvider"
+| summarize by sdpStage, Region
+| extend Region = replace(" ", "", tolower(Region))
+| order by sdpStage asc)
+on Region
+| project sdpStage, Region, ClusterName= max_t_ClusterName, RuntimeVersion= max_t_RuntimeVersion, eventType, Time=max_t, Endpoint= max_t_Endpoint
+| summarize dcount(Region) by RuntimeVersion, Region
+| where Region == "East US"
+```
+""",
 
 }
