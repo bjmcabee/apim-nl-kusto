@@ -1,5 +1,5 @@
 {
-  "kustoUri": "https://apimtest.westus2.kusto.windows.net",
-  "databaseName": "APIMTest",
+  "kustoUri": "https://apim.kusto.windows.net",
+  "databaseName": "APIMProd",
   "authenticationMode": "ManagedIdentity"
 }

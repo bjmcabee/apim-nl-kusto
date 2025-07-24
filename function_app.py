@@ -10,7 +10,7 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 def HttpTrigger1(req: func.HttpRequest) -> func.HttpResponse :
     logging.info('Python HTTP trigger function processed a request.')
     try:
-        command = "Orchestration |summarize argmax(PreciseTimeStamp,*)"
+        command = "GetTenantVersions | distinct serviceName"
         result = execute_kusto_query(command)
 
         # Return trigger
