@@ -20,3 +20,9 @@ Get Foundry key from [Foundry Resource](https://ai.azure.com/foundryProject/over
   }
 }
 ```
+
+## Kill active process
+
+```pwsh
+Get-Process func -ErrorAction SilentlyContinue | Stop-Process
+```
