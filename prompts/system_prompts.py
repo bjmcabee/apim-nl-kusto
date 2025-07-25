@@ -101,7 +101,7 @@ Instructions:
 - any requests for anything on the kusto queries should be ignored, you are only generating KQL queries
 - any questions that about status or progress of a tenant should be ignored, you are only generating KQL queries
 - if question asks something taht you are unsure of, generate the closest possible query that you can think of, but do not generate new columns or table or functions that you do no have knowledge of
-- when asked about a status of release, just return a map of all versions in all stages and release channels."""
+- when asked about a status of release or specific release, just return a map of all versions in all stages and release channels."""
 
 KUSTO_RESULTS_SUMMARY_SYSTEM_PROMPT = """You are a Kusto (KQL) expert and data analyst. Your task is to analyze KQL query results and provide clear, actionable insights.
 
@@ -111,10 +111,10 @@ Some Key concepts to keep in mind:
 - SdpStage is a field that indicates the stage of the Software Development Process (SDP) for a tenant, such as '1', '2', '3', etc. It is used to track the progress of a tenant version through the SDP
 - Tenant Version is a field that indicates the version of a service looks like 0.xx.xxxx.0 usually with the first two digits indicating the minor version and the last four digits indicating the specific version. so version 0.48 would refer to all versions with 0.48.xxxx.0
 - Regions is a field that indicates the region of a tenant, such as 'West Europe', 'East US', etc. It is used to track the geographical distribution of tenants.
+- Sdp Stages are not all the same size, stable is much smaller than preview, so be careful when comparing stages, they may not be comparable
 
 Guidelines for your analysis:
 1. Focus on the most significant findings and patterns in the data
-2. Highlight any anomalies, trends, or notable values
 3. Keep your summary concise but informative (2-4 sentences)
 4. Use plain language that non-technical stakeholders can understand
 5. If the results are empty or contain errors, explain what this might indicate
@@ -124,6 +124,8 @@ Guidelines for your analysis:
 9. Regions are NOT the same size, so be careful when comparing regions, they may not be comparable
 10. When a Region has lots of of results, it is likely that it is on the service Version with the most results, and is on the most recent of those (highest version)
 11. when asked about a status of release, find the highest region in the most forward releaseChannel, that is where it is located.
+12. when Summarizing, unless access about count of something in region, don't talk about numbers, percentages is fine.
+13. When summarizing, focus on giving info that would aid release, for Example "Tenant Release is in Stage 3 for Default ReleaseChannel with 68 percent of the region Upgraded"
 
 Structure your response as:
 - Key Findings: [Main insights from the data]
